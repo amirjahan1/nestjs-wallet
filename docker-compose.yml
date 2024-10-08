@@ -1,0 +1,61 @@
+version: '3.8'
+
+services:
+  postgres:
+    image: postgres:latest
+    container_name: postgres
+    environment:
+      POSTGRES_USER: ${DATABASE_USER}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_USER}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+
+  redis:
+    image: redis:latest
+    container_name: redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+  rabbitmq:
+    image: rabbitmq:3-management
+    container_name: rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: ${DATABASE_USER}
+      RABBITMQ_DEFAULT_PASS: ${DATABASE_PASSWORD}
+      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_URL}
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+
+#  nestjs:
+#    build:
+#      context: .
+#      dockerfile: Dockerfile
+#    container_name: nestjs
+#    depends_on:
+#      - postgres
+#      - redis
+#      - rabbitmq
+#    environment:
+#      DATABASE_HOST: postgres
+#      DATABASE_PORT: 5432
+#      DATABASE_NAME: ${DATABASE_NAME}
+#      DATABASE_USER: ${DATABASE_USER}
+#      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+#      JWT_SECRET: ${JWT_SECRET}
+#      REDIS_HOST: redis
+#      REDIS_PORT: 6379
+#    ports:
+#      - "3000:3000"
+#    volumes:
+#      - .:/usr/src/app
+#    restart: always
+
+volumes:
+  postgres_data:
+  redis_data:
