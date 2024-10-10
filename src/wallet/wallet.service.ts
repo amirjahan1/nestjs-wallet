@@ -8,6 +8,8 @@ import { CreateWalletDto } from './dto/create-wallet.dto';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
 import { Wallet } from './entities/wallet.entity';
 import { InjectModel } from '@nestjs/sequelize';
+import * as path from 'path';
+import * as fs from 'fs-extra';
 
 @Injectable()
 export class WalletService {
@@ -68,6 +70,82 @@ export class WalletService {
 
   remove(id: number) {
     return `This action removes a #${id} wallet`;
+  }
+
+  async analyzeJsonFile() {
+    try {
+      const dirPath = path.join(
+        __dirname,
+        '..',
+        '..',
+        'upload',
+        'backup',
+        'wallet_data',
+      );
+      const latestFile = this.getLatestFile(dirPath); // Get the latest file
+
+      if (!latestFile) {
+        throw new HttpException(
+          'No JSON file found for analysis',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const filePath = path.join(dirPath, latestFile);
+      const fileContent = await fs.readFile(filePath, 'utf-8');
+      const jsonData = JSON.parse(fileContent);
+
+      // Analyze data: e.g., calculate total profit, total transactions, and any other statistics.
+      const analysis = this.performAnalysis(jsonData);
+
+      return analysis;
+    } catch (error) {
+      throw new HttpException(
+        `Failed to analyze data: ${error.message}`,
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // Helper method to find the latest file in the directory
+  getLatestFile(directory: string): string | null {
+    const files = fs.readdirSync(directory);
+
+    // Filter for only JSON files
+    const jsonFiles = files.filter((file) => file.endsWith('.json'));
+
+    if (jsonFiles.length === 0) {
+      return null;
+    }
+
+    // Sort files by creation time
+    const sortedFiles = jsonFiles
+      .map((file) => ({
+        file,
+        time: fs.statSync(path.join(directory, file)).mtime.getTime(),
+      }))
+      .sort((a, b) => b.time - a.time);
+
+    // Return the most recent file
+    return sortedFiles[0].file;
+  }
+
+  performAnalysis(data: any[]): any {
+    let totalProfit = 0;
+    let totalTransactions = 0;
+
+    data.forEach((wallet) => {
+      if (wallet.totalProfit) totalProfit += wallet.totalProfit;
+      if (wallet.totalTransactions)
+        totalTransactions += wallet.totalTransactions;
+    });
+
+    return {
+      totalWallets: data.length,
+      totalProfit,
+      totalTransactions,
+      averageProfit: totalProfit / data.length,
+    };
   }
 
   // Upload Json file (batch)

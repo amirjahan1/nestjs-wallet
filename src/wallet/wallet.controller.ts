@@ -7,6 +7,8 @@ import {
   Param,
   Delete,
   Query,
+  HttpStatus,
+  HttpException,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { CreateWalletDto } from './dto/create-wallet.dto';
@@ -45,6 +47,19 @@ export class WalletController {
   @ApiParam({ name: 'address', description: 'Wallet Address' })
   async getWalletByAddress(@Param('address') address: string) {
     return this.walletService.getWalletByAddress(address);
+  }
+
+  @Post('analyze')
+  async analyzeWalletsData() {
+    try {
+      await this.walletService.analyzeJsonFile();
+      return { message: 'Wallet data successfully analyzed and updated' };
+    } catch (error) {
+      throw new HttpException(
+        'Failed to analyze data',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
   }
 
   @Patch(':id')
