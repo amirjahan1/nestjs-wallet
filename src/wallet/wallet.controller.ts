@@ -3,17 +3,15 @@ import {
   Get,
   Post,
   Body,
-  Patch,
   Param,
-  Delete,
   Query,
   HttpStatus,
   HttpException,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { CreateWalletDto } from './dto/create-wallet.dto';
-import { UpdateWalletDto } from './dto/update-wallet.dto';
 import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
+import { EventPattern } from '@nestjs/microservices';
 
 @ApiTags('Wallets')
 @Controller('wallet')
@@ -66,13 +64,12 @@ export class WalletController {
     return this.walletService.getWalletByAddress(address);
   }
 
-  @Patch(':id')
-  update(@Param('id') id: string, @Body() updateWalletDto: UpdateWalletDto) {
-    return this.walletService.update(+id, updateWalletDto);
-  }
-
-  @Delete(':id')
-  remove(@Param('id') id: string) {
-    return this.walletService.remove(+id);
+  @EventPattern('analyze_wallet_data')
+  async handleWalletAnalysis(data: any) {
+    try {
+      await this.walletService.analyzeJsonFile(); // Process the task
+    } catch (error) {
+      throw new Error(`Failed to process wallet analysis: ${error.message}`); // Automatic retry
+    }
   }
 }

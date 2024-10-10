@@ -3,14 +3,15 @@ import {
   HttpException,
   HttpStatus,
   NotFoundException,
+  Inject,
 } from '@nestjs/common';
 import { CreateWalletDto } from './dto/create-wallet.dto';
-import { UpdateWalletDto } from './dto/update-wallet.dto';
 import { Wallet } from './entities/wallet.entity';
 import { InjectModel } from '@nestjs/sequelize';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { WalletAnalysis } from './entities/wallet-analysis.entity';
+import { ClientProxy } from '@nestjs/microservices';
 
 @Injectable()
 export class WalletService {
@@ -19,6 +20,7 @@ export class WalletService {
     private readonly walletModel: typeof Wallet,
     @InjectModel(WalletAnalysis)
     private readonly walletAnalysisModel: typeof WalletAnalysis,
+    @Inject('RABBITMQ_SERVICE') private readonly client: ClientProxy,
   ) {}
   create(createWalletDto: CreateWalletDto) {
     return 'This action adds a new wallet';
@@ -80,12 +82,8 @@ export class WalletService {
     };
   }
 
-  update(id: number, updateWalletDto: UpdateWalletDto) {
-    return `This action updates a #${id} wallet`;
-  }
-
-  remove(id: number) {
-    return `This action removes a #${id} wallet`;
+  async sendAnalyzeRequest(data: any) {
+    return this.client.emit('analyze_wallet_data', data); // Send data to RabbitMQ queue
   }
 
   async analyzeJsonFile() {
