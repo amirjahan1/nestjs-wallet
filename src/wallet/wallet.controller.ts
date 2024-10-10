@@ -2,14 +2,12 @@ import {
   Controller,
   Get,
   Post,
-  Body,
   Param,
   Query,
   HttpStatus,
   HttpException,
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
-import { CreateWalletDto } from './dto/create-wallet.dto';
 import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 import { EventPattern } from '@nestjs/microservices';
 
@@ -17,11 +15,6 @@ import { EventPattern } from '@nestjs/microservices';
 @Controller('wallet')
 export class WalletController {
   constructor(private readonly walletService: WalletService) {}
-
-  @Post()
-  create(@Body() createWalletDto: CreateWalletDto) {
-    return this.walletService.create(createWalletDto);
-  }
 
   @Post('analyze')
   async analyzeWalletsData() {

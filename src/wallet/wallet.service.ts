@@ -5,25 +5,28 @@ import {
   NotFoundException,
   Inject,
 } from '@nestjs/common';
-import { CreateWalletDto } from './dto/create-wallet.dto';
 import { Wallet } from './entities/wallet.entity';
 import { InjectModel } from '@nestjs/sequelize';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { WalletAnalysis } from './entities/wallet-analysis.entity';
 import { ClientProxy } from '@nestjs/microservices';
+import Redis from 'ioredis';
 
 @Injectable()
 export class WalletService {
+  private readonly redisClient: Redis;
   constructor(
     @InjectModel(Wallet)
     private readonly walletModel: typeof Wallet,
     @InjectModel(WalletAnalysis)
     private readonly walletAnalysisModel: typeof WalletAnalysis,
     @Inject('RABBITMQ_SERVICE') private readonly client: ClientProxy,
-  ) {}
-  create(createWalletDto: CreateWalletDto) {
-    return 'This action adds a new wallet';
+  ) {
+    this.redisClient = new Redis({
+      host: process.env.REDIS_HOST || 'localhost',
+      port: parseInt(process.env.REDIS_PORT, 10) || 6379,
+    });
   }
 
   async getWallets(
@@ -34,9 +37,18 @@ export class WalletService {
   ) {
     const validSortFields = ['totalProfit', 'numTokensTraded', 'dayActive'];
     const sortField = validSortFields.includes(sortBy) ? sortBy : 'totalProfit';
-
     const offset = (page - 1) * limit;
 
+    // Create a unique cache key based on the query parameters
+    const cacheKey = `wallets:${sortField}:${order}:${page}:${limit}`;
+
+    // Check if the data exists in Redis
+    const cachedData = await this.redisClient.get(cacheKey);
+    if (cachedData) {
+      return JSON.parse(cachedData); // Return cached data if available
+    }
+
+    // Data not found in cache, query the database
     const wallets = await this.walletModel.findAll({
       order: [[sortField, order.toUpperCase()]],
       limit,
@@ -45,12 +57,17 @@ export class WalletService {
 
     const totalItems = await this.walletModel.count();
 
-    return {
+    const result = {
       data: wallets,
       totalItems,
       currentPage: page,
       totalPages: Math.ceil(totalItems / limit),
     };
+
+    // Cache the result in Redis for future use (set expiry of 600 seconds)
+    await this.redisClient.set(cacheKey, JSON.stringify(result), 'EX', 600); // Set TTL of 600 seconds
+
+    return result;
   }
 
   async getWalletByAddress(address: string) {
