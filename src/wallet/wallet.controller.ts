@@ -25,6 +25,19 @@ export class WalletController {
     return this.walletService.create(createWalletDto);
   }
 
+  @Post('analyze')
+  async analyzeWalletsData() {
+    try {
+      await this.walletService.analyzeJsonFile();
+      return { message: 'Wallet data successfully analyzed and updated' };
+    } catch (error) {
+      throw new HttpException(
+        'Failed to analyze data',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   @Get()
   @ApiQuery({
     name: 'sort_by',
@@ -43,23 +56,15 @@ export class WalletController {
     return this.walletService.getWallets(sortBy, order, page, limit);
   }
 
+  @Get('summary')
+  async getWalletSummary() {
+    return this.walletService.getWalletSummary();
+  }
+
   @Get(':address')
   @ApiParam({ name: 'address', description: 'Wallet Address' })
   async getWalletByAddress(@Param('address') address: string) {
     return this.walletService.getWalletByAddress(address);
-  }
-
-  @Post('analyze')
-  async analyzeWalletsData() {
-    try {
-      await this.walletService.analyzeJsonFile();
-      return { message: 'Wallet data successfully analyzed and updated' };
-    } catch (error) {
-      throw new HttpException(
-        'Failed to analyze data',
-        HttpStatus.INTERNAL_SERVER_ERROR,
-      );
-    }
   }
 
   @Patch(':id')

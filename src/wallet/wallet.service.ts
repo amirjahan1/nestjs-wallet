@@ -60,8 +60,21 @@ export class WalletService {
     return wallet;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} wallet`;
+  async getWalletSummary() {
+    const totalWallets = await this.walletModel.count();
+
+    const totalProfitResult = await this.walletModel.sum('totalProfit');
+    const totalTransactionsResult =
+      await this.walletModel.sum('totalTransactions');
+
+    const avgProfit = totalProfitResult / totalWallets;
+
+    return {
+      totalWallets,
+      totalProfit: totalProfitResult,
+      totalTransactions: totalTransactionsResult,
+      averageProfit: avgProfit,
+    };
   }
 
   update(id: number, updateWalletDto: UpdateWalletDto) {
