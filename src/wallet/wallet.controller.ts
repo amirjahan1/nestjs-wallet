@@ -11,7 +11,7 @@ import {
 import { WalletService } from './wallet.service';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
-import { ApiQuery, ApiTags } from '@nestjs/swagger';
+import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
 
 @ApiTags('Wallets')
 @Controller('wallet')
@@ -41,9 +41,10 @@ export class WalletController {
     return this.walletService.getWallets(sortBy, order, page, limit);
   }
 
-  @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.walletService.findOne(+id);
+  @Get(':address')
+  @ApiParam({ name: 'address', description: 'Wallet Address' })
+  async getWalletByAddress(@Param('address') address: string) {
+    return this.walletService.getWalletByAddress(address);
   }
 
   @Patch(':id')

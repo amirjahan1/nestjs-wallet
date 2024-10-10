@@ -1,4 +1,9 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import {
+  Injectable,
+  HttpException,
+  HttpStatus,
+  NotFoundException,
+} from '@nestjs/common';
 import { CreateWalletDto } from './dto/create-wallet.dto';
 import { UpdateWalletDto } from './dto/update-wallet.dto';
 import { Wallet } from './entities/wallet.entity';
@@ -39,6 +44,18 @@ export class WalletService {
       currentPage: page,
       totalPages: Math.ceil(totalItems / limit),
     };
+  }
+
+  async getWalletByAddress(address: string) {
+    const wallet = await this.walletModel.findOne({
+      where: { walletAddress: address },
+    });
+
+    if (!wallet) {
+      throw new NotFoundException(`Wallet with address ${address} not found`);
+    }
+
+    return wallet;
   }
 
   findOne(id: number) {
