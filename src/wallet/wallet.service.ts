@@ -110,7 +110,7 @@ export class WalletService {
 
       // Analyze data: e.g., calculate total profit, total transactions, and any other statistics.
       const analysis = this.performAnalysis(jsonData);
-
+      console.clear();
       return analysis;
     } catch (error) {
       throw new HttpException(
@@ -143,22 +143,73 @@ export class WalletService {
     return sortedFiles[0].file;
   }
 
-  performAnalysis(data: any[]): any {
+  async performAnalysis(data: any[]): Promise<any> {
     let totalProfit = 0;
-    let totalTransactions = 0;
+    let totalLoss = 0;
+    let mostProfitableToken = null;
+    let leastProfitableToken = null;
+    let mostProfitableTokenProfit = -Infinity;
+    let leastProfitableTokenProfit = Infinity;
+    const uniqueTokensTraded = new Set();
+    const activeTradingDays = new Set();
+    let riskAssessment = 0;
 
-    data.forEach((wallet) => {
-      if (wallet.totalProfit) totalProfit += wallet.totalProfit;
-      if (wallet.totalTransactions)
-        totalTransactions += wallet.totalTransactions;
-    });
+    // Analyze each wallet entry
+    for (const wallet of data) {
+      if (wallet.totalProfit !== undefined) {
+        totalProfit += wallet.totalProfit;
+        if (wallet.totalProfit > 0) {
+          totalLoss += 0; // Profit wallets do not contribute to loss
+        } else {
+          totalLoss += wallet.totalProfit; // Negative totalProfit counts as loss
+        }
+      }
 
-    return {
-      totalWallets: data.length,
+      // Check for the most/least profitable token
+      if (wallet.numTokensTraded !== undefined) {
+        uniqueTokensTraded.add(wallet.numTokensTraded); // Add token to the set
+      }
+
+      if (wallet.dayActive !== undefined) {
+        activeTradingDays.add(wallet.dayActive); // Count unique active days
+      }
+
+      if (
+        wallet.avgBuyAmount !== undefined &&
+        wallet.totalProfit !== undefined
+      ) {
+        if (wallet.totalProfit > mostProfitableTokenProfit) {
+          mostProfitableTokenProfit = wallet.totalProfit;
+          mostProfitableToken = wallet.walletAddress; // Assume walletAddress is tied to tokens traded
+        }
+        if (wallet.totalProfit < leastProfitableTokenProfit) {
+          leastProfitableTokenProfit = wallet.totalProfit;
+          leastProfitableToken = wallet.walletAddress; // Assume walletAddress is tied to tokens traded
+        }
+      }
+
+      // Assess risk levels based on diversification
+      if (wallet.numTokensTraded && wallet.numTokensTraded > 0) {
+        riskAssessment += 1 / wallet.numTokensTraded; // Simple diversification-based risk metric
+      }
+    }
+
+    // Calculate overall risk score as the average
+    riskAssessment = riskAssessment / data.length;
+
+    // Store the results in a new summary object
+    const analysisResult = {
       totalProfit,
-      totalTransactions,
-      averageProfit: totalProfit / data.length,
+      totalLoss,
+      mostProfitableToken,
+      leastProfitableToken,
+      uniqueTokensTraded: uniqueTokensTraded.size,
+      activeTradingDays: activeTradingDays.size,
+      riskAssessment,
     };
+
+    // Optionally save the result to the database or return it as a response
+    return analysisResult;
   }
 
   // Upload Json file (batch)

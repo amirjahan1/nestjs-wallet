@@ -28,8 +28,7 @@ export class WalletController {
   @Post('analyze')
   async analyzeWalletsData() {
     try {
-      await this.walletService.analyzeJsonFile();
-      return { message: 'Wallet data successfully analyzed and updated' };
+      return this.walletService.analyzeJsonFile();
     } catch (error) {
       throw new HttpException(
         'Failed to analyze data',
