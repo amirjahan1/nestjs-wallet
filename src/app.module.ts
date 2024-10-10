@@ -3,6 +3,7 @@ import { SequelizeModule } from '@nestjs/sequelize';
 import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { WalletModule } from './wallet/wallet.module';
+import { UploadController } from './wallet/upload.controller';
 
 @Module({
   imports: [
@@ -18,7 +19,7 @@ import { WalletModule } from './wallet/wallet.module';
     }),
     WalletModule, // Import WalletModule to load the Wallet entity
   ],
-  controllers: [AppController],
+  controllers: [AppController, UploadController],
   providers: [AppService],
 })
 export class AppModule {}
