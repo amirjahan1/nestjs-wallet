@@ -32,29 +32,29 @@ services:
       - "5672:5672"
       - "15672:15672"
 
-#  nestjs:
-#    build:
-#      context: .
-#      dockerfile: Dockerfile
-#    container_name: nestjs
-#    depends_on:
-#      - postgres
-#      - redis
-#      - rabbitmq
-#    environment:
-#      DATABASE_HOST: postgres
-#      DATABASE_PORT: 5432
-#      DATABASE_NAME: ${DATABASE_NAME}
-#      DATABASE_USER: ${DATABASE_USER}
-#      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
-#      JWT_SECRET: ${JWT_SECRET}
-#      REDIS_HOST: redis
-#      REDIS_PORT: 6379
-#    ports:
-#      - "3000:3000"
-#    volumes:
-#      - .:/usr/src/app
-#    restart: always
+  nestjs:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: nestjs
+    depends_on:
+      - postgres
+      - redis
+      - rabbitmq
+    environment:
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_NAME: ${DATABASE_USER}
+      DATABASE_USER: ${DATABASE_USER}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      REDIS_HOST: ${REDIS_HOST}
+      REDIS_PORT: ${REDIS_PORT}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/usr/src/app
+    restart: always
 
 volumes:
   postgres_data:

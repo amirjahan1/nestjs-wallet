@@ -9,11 +9,11 @@ import { UploadController } from './wallet/upload.controller';
   imports: [
     SequelizeModule.forRoot({
       dialect: 'postgres',
-      host: 'localhost',
-      port: 5432,
-      username: 'root',
-      password: 'yourpassword',
-      database: 'root',
+      host: process.env.DATABASE_HOST || '127.0.0.1',
+      port: parseInt(process.env.DATABASE_PORT, 10) || 5432,
+      username: process.env.DATABASE_USER || 'root',
+      password: process.env.DATABASE_PASSWORD || 'yourpassword',
+      database: process.env.DATABASE_NAME || 'root',
       autoLoadModels: true,
       synchronize: true,
     }),
