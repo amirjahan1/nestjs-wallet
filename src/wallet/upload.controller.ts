@@ -12,6 +12,7 @@ import { WalletService } from './wallet.service';
 import * as path from 'path';
 import * as fs from 'fs-extra';
 import { Express } from 'express';
+import { ApiConsumes, ApiBody } from '@nestjs/swagger';
 
 @Controller('upload')
 export class UploadController {
@@ -54,6 +55,18 @@ export class UploadController {
       },
     }),
   )
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: {
+        file: {
+          type: 'string',
+          format: 'binary',
+        },
+      },
+    },
+  })
   async uploadWalletData(@UploadedFile() file: Express.Multer.File) {
     if (!file) {
       throw new HttpException('File is required', HttpStatus.BAD_REQUEST);
