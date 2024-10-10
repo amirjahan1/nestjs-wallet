@@ -10,12 +10,15 @@ import { Wallet } from './entities/wallet.entity';
 import { InjectModel } from '@nestjs/sequelize';
 import * as path from 'path';
 import * as fs from 'fs-extra';
+import { WalletAnalysis } from './entities/wallet-analysis.entity';
 
 @Injectable()
 export class WalletService {
   constructor(
     @InjectModel(Wallet)
     private readonly walletModel: typeof Wallet,
+    @InjectModel(WalletAnalysis)
+    private readonly walletAnalysisModel: typeof WalletAnalysis,
   ) {}
   create(createWalletDto: CreateWalletDto) {
     return 'This action adds a new wallet';
@@ -108,9 +111,12 @@ export class WalletService {
       const fileContent = await fs.readFile(filePath, 'utf-8');
       const jsonData = JSON.parse(fileContent);
 
-      // Analyze data: e.g., calculate total profit, total transactions, and any other statistics.
-      const analysis = this.performAnalysis(jsonData);
-      console.clear();
+      // Analyze the JSON data
+      const analysis = await this.performAnalysis(jsonData);
+
+      // Save the analysis result to the database
+      await this.saveAnalysisResult(analysis);
+
       return analysis;
     } catch (error) {
       throw new HttpException(
@@ -120,27 +126,17 @@ export class WalletService {
     }
   }
 
-  // Helper method to find the latest file in the directory
-  getLatestFile(directory: string): string | null {
-    const files = fs.readdirSync(directory);
-
-    // Filter for only JSON files
-    const jsonFiles = files.filter((file) => file.endsWith('.json'));
-
-    if (jsonFiles.length === 0) {
-      return null;
-    }
-
-    // Sort files by creation time
-    const sortedFiles = jsonFiles
-      .map((file) => ({
-        file,
-        time: fs.statSync(path.join(directory, file)).mtime.getTime(),
-      }))
-      .sort((a, b) => b.time - a.time);
-
-    // Return the most recent file
-    return sortedFiles[0].file;
+  async saveAnalysisResult(analysis: any) {
+    // Save the analysis result to the database
+    await this.walletAnalysisModel.create({
+      totalProfit: analysis.totalProfit,
+      totalLoss: analysis.totalLoss,
+      mostProfitableToken: analysis.mostProfitableToken,
+      leastProfitableToken: analysis.leastProfitableToken,
+      uniqueTokensTraded: analysis.uniqueTokensTraded,
+      activeTradingDays: analysis.activeTradingDays,
+      riskAssessment: analysis.riskAssessment,
+    });
   }
 
   async performAnalysis(data: any[]): Promise<any> {
@@ -208,8 +204,31 @@ export class WalletService {
       riskAssessment,
     };
 
-    // Optionally save the result to the database or return it as a response
+    // Return the analysis result
     return analysisResult;
+  }
+
+  // Helper method to find the latest file in the directory
+  getLatestFile(directory: string): string | null {
+    const files = fs.readdirSync(directory);
+
+    // Filter for only JSON files
+    const jsonFiles = files.filter((file) => file.endsWith('.json'));
+
+    if (jsonFiles.length === 0) {
+      return null;
+    }
+
+    // Sort files by creation time
+    const sortedFiles = jsonFiles
+      .map((file) => ({
+        file,
+        time: fs.statSync(path.join(directory, file)).mtime.getTime(),
+      }))
+      .sort((a, b) => b.time - a.time);
+
+    // Return the most recent file
+    return sortedFiles[0].file;
   }
 
   // Upload Json file (batch)
