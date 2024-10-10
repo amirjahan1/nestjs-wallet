@@ -14,8 +14,31 @@ export class WalletService {
     return 'This action adds a new wallet';
   }
 
-  findAll() {
-    return `This action returns all wallet`;
+  async getWallets(
+    sortBy: string,
+    order: 'asc' | 'desc',
+    page: number,
+    limit: number,
+  ) {
+    const validSortFields = ['totalProfit', 'numTokensTraded', 'dayActive'];
+    const sortField = validSortFields.includes(sortBy) ? sortBy : 'totalProfit';
+
+    const offset = (page - 1) * limit;
+
+    const wallets = await this.walletModel.findAll({
+      order: [[sortField, order.toUpperCase()]],
+      limit,
+      offset,
+    });
+
+    const totalItems = await this.walletModel.count();
+
+    return {
+      data: wallets,
+      totalItems,
+      currentPage: page,
+      totalPages: Math.ceil(totalItems / limit),
+    };
   }
 
   findOne(id: number) {
