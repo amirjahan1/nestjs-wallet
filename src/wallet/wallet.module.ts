@@ -14,7 +14,7 @@ import { ClientsModule, Transport } from '@nestjs/microservices';
         name: 'RABBITMQ_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: [`amqp://root:yourpassword@localhost:5672`],
+          urls: [`amqp://root:yourpassword@rabbitmq:5672`],
           queue: 'wallet_analysis_queue',
           queueOptions: {
             durable: true, // Messages are persisted to disk

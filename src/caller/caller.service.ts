@@ -15,8 +15,8 @@ export class CallerService {
   // Array of possible Wallet Service actions with event names
   private walletEndpoints = [
     { pattern: 'get_wallets', data: {} }, // Call the /wallets endpoint
-    { pattern: 'get_wallet_by_id', data: { id: this.getRandomId() } }, // Call /wallets/:id
-    { pattern: 'get_top_tokens_by_id', data: { id: this.getRandomId() } }, // Call /wallets/top-tokens/:id
+    // { pattern: 'get_wallet_by_id', data: { id: this.getRandomId() } }, // Call /wallets/:id
+    // { pattern: 'get_top_tokens_by_id', data: { id: this.getRandomId() } }, // Call /wallets/top-tokens/:id
   ];
 
   // Randomly selects an event and sends the request
@@ -26,7 +26,7 @@ export class CallerService {
     this.logger.log(`Sending request: ${randomRequest.pattern}`);
     try {
       // Use lastValueFrom instead of toPromise()
-
+      console.log('func start');
       await lastValueFrom(
         this.walletServiceClient
           .send(randomRequest.pattern, randomRequest.data)
@@ -38,6 +38,7 @@ export class CallerService {
             }),
           ),
       );
+      console.log('func finish');
       const latency = Date.now() - startTime;
       this.logger.log(
         `Request to ${randomRequest.pattern} succeeded. Latency: ${latency}ms`,
@@ -54,8 +55,8 @@ export class CallerService {
   private getRandomRequest() {
     const requests = [
       { pattern: 'get_wallets', data: {} },
-      { pattern: 'get_wallet_by_id', data: { id: this.getRandomId() } },
-      { pattern: 'get_top_tokens_by_id', data: { id: this.getRandomId() } },
+      // { pattern: 'get_wallet_by_id', data: { id: this.getRandomId() } },
+      // { pattern: 'get_top_tokens_by_id', data: { id: this.getRandomId() } },
     ];
     const randomIndex = Math.floor(Math.random() * requests.length);
     return requests[randomIndex];

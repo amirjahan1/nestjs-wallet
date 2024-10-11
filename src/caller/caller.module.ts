@@ -13,7 +13,7 @@ import { WinstonModule } from 'nest-winston'; // Used for cron job/interval
         name: 'WALLET_SERVICE',
         transport: Transport.RMQ,
         options: {
-          urls: [`amqp://root:yourpassword@localhost:5672`], // RabbitMQ URL
+          urls: [`amqp://root:yourpassword@rabbitmq:5672`],
           queue: 'wallet_service_queue',
           queueOptions: {
             durable: false,

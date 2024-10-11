@@ -78,6 +78,7 @@ export class WalletController {
       page = 1,
       limit = 10,
     } = data;
+
     return await this.walletService.getWallets(sortBy, order, page, limit);
   }
 
