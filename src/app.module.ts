@@ -4,6 +4,7 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { WalletModule } from './wallet/wallet.module';
 import { UploadController } from './wallet/upload.controller';
+import { CallerModule } from './caller/caller.module';
 
 @Module({
   imports: [
@@ -18,6 +19,7 @@ import { UploadController } from './wallet/upload.controller';
       synchronize: true,
     }),
     WalletModule, // Import WalletModule to load the Wallet entity
+    CallerModule,
   ],
   controllers: [AppController, UploadController],
   providers: [AppService],
