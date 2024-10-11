@@ -1,7 +1,9 @@
 import { Module } from '@nestjs/common';
 import { ClientsModule, Transport } from '@nestjs/microservices';
 import { CallerService } from './caller.service';
-import { ScheduleModule } from '@nestjs/schedule'; // Used for cron job/interval
+import { ScheduleModule } from '@nestjs/schedule';
+import { winstonConfig } from '../logger';
+import { WinstonModule } from 'nest-winston'; // Used for cron job/interval
 
 @Module({
   imports: [
@@ -19,6 +21,7 @@ import { ScheduleModule } from '@nestjs/schedule'; // Used for cron job/interval
         },
       },
     ]),
+    WinstonModule.forRoot(winstonConfig), // Add WinstonModule here for logging
   ],
   providers: [CallerService],
 })
