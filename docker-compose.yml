@@ -25,9 +25,8 @@ services:
     image: rabbitmq:3-management
     container_name: rabbitmq
     environment:
-      RABBITMQ_DEFAULT_USER: ${DATABASE_USER}
-      RABBITMQ_DEFAULT_PASS: ${DATABASE_PASSWORD}
-      RABBITMQ_DEFAULT_VHOST: ${RABBITMQ_URL}
+      RABBITMQ_DEFAULT_USER: ${DATABASE_USER} # Set RabbitMQ user
+      RABBITMQ_DEFAULT_PASS: ${DATABASE_PASSWORD} # Set RabbitMQ password
     ports:
       - "5672:5672"
       - "15672:15672"

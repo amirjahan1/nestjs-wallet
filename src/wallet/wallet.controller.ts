@@ -9,7 +9,7 @@ import {
 } from '@nestjs/common';
 import { WalletService } from './wallet.service';
 import { ApiParam, ApiQuery, ApiTags } from '@nestjs/swagger';
-import { EventPattern } from '@nestjs/microservices';
+import { EventPattern, Payload } from '@nestjs/microservices';
 
 @ApiTags('Wallets')
 @Controller('wallet')
@@ -57,12 +57,40 @@ export class WalletController {
     return this.walletService.getWalletByAddress(address);
   }
 
+  // RabbitMQ Event Handlers
+
+  // Handle wallet analysis requests via RabbitMQ
   @EventPattern('analyze_wallet_data')
-  async handleWalletAnalysis(data: any) {
+  async handleWalletAnalysis(@Payload() data: any) {
     try {
       await this.walletService.analyzeJsonFile(); // Process the task
     } catch (error) {
       throw new Error(`Failed to process wallet analysis: ${error.message}`); // Automatic retry
     }
+  }
+
+  // Handle '/wallets' request via RabbitMQ
+  @EventPattern('get_wallets')
+  async handleGetWallets(@Payload() data: any) {
+    const {
+      sortBy = 'totalProfit',
+      order = 'asc',
+      page = 1,
+      limit = 10,
+    } = data;
+    return await this.walletService.getWallets(sortBy, order, page, limit);
+  }
+
+  // Handle '/wallets/:id' request via RabbitMQ
+  @EventPattern('get_wallet_by_id')
+  async handleGetWalletById(@Payload() data: any) {
+    return await this.walletService.getWalletByAddress(data.id);
+  }
+
+  // Handle '/wallets/top-tokens/:id' request via RabbitMQ
+  @EventPattern('get_top_tokens_by_id')
+  async handleGetTopTokens(@Payload() data: any) {
+    // Add logic to handle top tokens request
+    return `Top tokens for wallet id ${data.id}`;
   }
 }
