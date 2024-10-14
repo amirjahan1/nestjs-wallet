@@ -32,6 +32,7 @@ REDIS_PORT=6379
 ### 3. Run the Project:
 Run the following command to build and start the containers:
 ```bash
+npm install
 docker-compose up -d
 ```
 
